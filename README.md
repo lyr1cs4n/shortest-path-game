@@ -13,8 +13,6 @@ Maze Explorer is an immersive game developed in C++ using the SFML (Simple and F
 
 - **Visual Feedback:** As players navigate through the maze, the game provides real-time visual feedback, highlighting the current position of the player character, valid movement options, and the shortest path discovered. This visual feedback aids players in decision-making and enhances the overall gaming experience.
 
-- **Challenge and Exploration:** Maze Explorer challenges players to navigate through intricate mazes, overcome obstacles, and uncover the shortest path to victory. With each maze offering unique configurations and complexities, players are encouraged to experiment, strategize, and refine their problem-solving skills.
-
 ## How to Play:
 
 1. **Launch the Game:** Begin your adventure by launching the Maze Explorer application.
