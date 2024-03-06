@@ -6,13 +6,18 @@ void Game::initializeVariables()
 }
 void Game::initializeWindow()
 {
-    videoMode.height = 700;
+    videoMode.height = 800;
     videoMode.width = 700;
 
     window = new RenderWindow (videoMode,"Game 2",Style::Close | Style::Titlebar);
     window->setFramerateLimit(60);
 }
-
+void Game::startAgain()
+{
+    delete maze;
+    system("cls");
+    maze = new Maze(window);
+}
 void Game::PollEvents()
 {
     Event ev;
@@ -22,9 +27,13 @@ void Game::PollEvents()
         {
             window->close();
         }
-        if (ev.type == Event::Closed)
+        else if (ev.type == Event::Closed)
         {
             window->close();
+        }
+        else if ((ev.key.code == sf::Keyboard::R))
+        {
+            startAgain();
         }
     }
 }
@@ -42,6 +51,7 @@ void Game::render()
     maze->render(window);
     window->display();
 }
+
 Game::Game()
 {
     this->initializeWindow();

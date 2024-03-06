@@ -5,8 +5,10 @@ void Maze::initvariables()
 	row = 10;
 	col = 10;
 
+	player_x = 0;
+	player_y = 0;
+	finished = false;
 	check = false;
-
 	arr = std::vector<std::vector<char>>(row, std::vector<char>(col));
 	mazes = vector<vector<Sprite>>(row, vector<Sprite>(col)) ;
 	adj_matrix = vector<vector<int>>(row, vector<int>(col));
@@ -30,52 +32,210 @@ void Maze::initTexture()
 		cout << "Could Not Load End Texture" << endl;
 	}
 }
-void Maze::initMaze()
-{
-	sin.open("Materials/maze.txt");
-	for (int i = 0; i < row; i++)
-	{
-		for (int j = 0; j < col; j++)
-		{
-			sin >> arr[i][j];
-			if (arr[i][j] == 'h')
-			{
-				adj_matrix[i][j] = 0;
-				mazes[i][j].setTexture(wall);
-				mazes[i][j].setPosition(j * 70.f, i * 70.f);
-			}
-			else if (arr[i][j] == 'e')
-			{
-				target.first = i;
-				target.second = j;
-				adj_matrix[i][j] = 1;
+void Maze::initMaze(RenderWindow& window) {
+	// Create a blank maze
+	bool check2 = false;
+	for (int i = 0; i < row; i++) {
+		for (int j = 0; j < col; j++) {
+			arr[i][j] = ' ';
+			adj_matrix[i][j] = 1;
+			mazes[i][j].setTexture(grass);
+			mazes[i][j].setPosition(j * 70, i * 70);
+		}
+	}
+	// Initialize start and end points to invalid values
+	start = { 0, 0 };
+	target = { 0, 0 };
+	arr[0][0] = 's';
+	this->initPlayer(&window);
+	player->getplayer().setPosition(player_x * 70 + 10, player_y * 70);
 
+	while (window.isOpen()) {
+		sf::Event event;
+		while (window.pollEvent(event)) {
+			if (event.type == sf::Event::Closed) {
+				window.close();
 			}
-			else {
-				if (arr[i][j] == 's')
-				{
-					start.first = i;
-					start.second = j;
-					player_x = j;
-					player_y = i;
+			else if (event.type == sf::Event::KeyPressed) {
+				if (event.key.code == sf::Keyboard::Escape) {
+					window.close();
 				}
-				adj_matrix[i][j] = 1;
-				mazes[i][j].setTexture(grass);
-				mazes[i][j].setPosition(j * 70, i * 70);
+				else if (event.key.code == sf::Keyboard::S) { // Set start point
+					// Reset previous position
+					
+					sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+					int x = mousePos.x / 70;
+					int y = mousePos.y / 70;
+					if (isValidCell(prev_player_x, prev_player_y) && arr[y][x] != 'h' && arr[y][x] != 'e') {
+						arr[prev_player_y][prev_player_x] = ' ';
+						mazes[prev_player_y][prev_player_x].setTexture(grass);
+					}
+					if (isValidCell(x, y) && arr[y][x] == ' ') {
+						start = { y, x };
+						adj_matrix[y][x] = 1;
+						arr[y][x] = 's';
+						player_x = mousePos.x / 70;
+						player_y = mousePos.y / 70;
+						player->getplayer().setPosition(player_x * 70 + 10, player_y * 70 );
+						prev_player_x = x;
+						prev_player_y = y;
+					}
+				}
+				else if (event.key.code == sf::Keyboard::E) { // Set end point
+					sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+					int x = mousePos.x / 70;
+					int y = mousePos.y / 70;
+					if (isValidCell(x, y)) {
+						// Clear previous end point if it exists
+						if (isValidCell(prev_end_y, prev_end_x) && arr[prev_end_y][prev_end_x] == 'e') {
+							arr[prev_end_y][prev_end_x] = ' ';
+							mazes[prev_end_y][prev_end_x].setTexture(grass);
+						}
+						// Toggle effect for the new end point
+						else if (arr[y][x] == 'e') {
+							arr[y][x] = ' ';
+							mazes[y][x].setTexture(grass);
+						}
+						else if (arr[y][x] != 's') {
+							target = { y, x };
+							adj_matrix[y][x] = 1;
+							arr[y][x] = 'e';
+							mazes[y][x].setTexture(End);
+							prev_end_x = x;
+							prev_end_y = y;
+						}
+					}
+				}
+				else if (event.key.code == sf::Keyboard::R) {
+					resetMaze(window);
+				}
+
+				else if (event.key.code == sf::Keyboard::P) { // Start pathfinding
+					check2 = true;
+				}
 			}
+			else if (event.type == sf::Event::MouseButtonPressed) {
+				// Toggle between wall and empty cell
+				sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+				int x = mousePos.x / 70;
+				int y = mousePos.y / 70;
+				if (isValidCell(x, y) && arr[y][x] != 's' ) {
+					if (arr[y][x] == 'h') {
+						adj_matrix[y][x] = 1;
+						arr[y][x] = ' ';
+						mazes[y][x].setTexture(grass);
+					}
+					else {
+						if (arr[y][x] != 's' )
+						{
+							adj_matrix[y][x] = 0;
+							arr[y][x] = 'h';
+							mazes[y][x].setTexture(wall);
+						}
+					}
+				}
+			}
+		}
+		if (check2) {
+			this->bfs_shortestpath();
+			this->declarePath();
+			this->initPlayer(&window);
+			this->initui();
+			this->movement();
+			sf::Event event;
+			while (window.pollEvent(event)) {
+				if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::P) {
+					resetMaze(window);
+					initializeMaze(); // Call initializeMaze to start the maze again
+					return;
+				}
+			}
+			break;
+		}
+		window.clear();
+		render(&window);
+		window.display();
+	}
+}
+void Maze::guideText()
+{
+	stringstream x;
+	x << " \t\tWall : Left click \t\t\t\t\t\t\t\t\t\t\t Player Position : S \n \t\tGate : E\t\t\t\t\t\t\t\t\t\t\t\t\t\t   Reset : R\n\t\t\t\t\t\t\t\t\t\t\t\t Run : P";
+	textguide.setString(x.str());
+	textguide.setFillColor(Color::White);
+	textguide.setPosition(0, 702);
+	textguide.setStyle(sf::Text::Bold);
+	textguide.setCharacterSize(50);
+	textguide.setOutlineColor(Color::Black);
+	textguide.setOutlineThickness(5);
+}
+
+void Maze::resetMaze(RenderWindow& window) {
+	// Clear the maze arrays
+	arr.clear();
+	adj_matrix.clear();
+
+	// Resize and initialize the arrays
+	arr.resize(row, std::vector<char>(col, ' '));
+	adj_matrix.resize(row, std::vector<int>(col, 1));
+
+	// Reset the maze
+	bool check2 = false;
+	for (int i = 0; i < row; i++) {
+		for (int j = 0; j < col; j++) {
+			arr[i][j] = ' ';
+			adj_matrix[i][j] = 1;
+			mazes[i][j].setTexture(grass);
+			mazes[i][j].setPosition(j * 70, i * 70);
 		}
 	}
 
+	// Initialize start and end points to invalid values
+	start = { 0, 0 };
+	target = { 0, 0 };
+	arr[0][0] = 's';
+	prev_player_x = 0;
+	prev_player_y = 0;
+	player_x = 0;
+	player_y = 0;
+	prev_end_x = -1;
+	prev_end_y = -1;
+
+	// Initialize player position
+	this->initPlayer(&window);
+	player->getplayer().setPosition(player_x * 70 + 10, player_y * 70);
 }
-void Maze::initfont()
+bool Maze::isValidCell(int x, int y) {
+	return x >= 0 && x < col && y >= 0 && y < row;
+}
+void Maze::initfont() // font
 {
 	if (!font.loadFromFile("Materials/Dosis-Light.ttf"))
 	{
 		cout << "Could Not Load Font" << endl;
 	}
 	ui.setFont(font);
+	ui.setCharacterSize(24);
+	ui.setFillColor(sf::Color::White);
+	ui.setStyle(sf::Text::Bold);
+
+	textguide.setFont(font);
+	textguide.setCharacterSize(24);
+	textguide.setFillColor(sf::Color::White);
+	textguide.setStyle(sf::Text::Bold);
+
+	// Center the text
+	sf::FloatRect textBounds = ui.getLocalBounds();
+	ui.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
+	ui.setPosition(window->getSize().x / 2.0f, window->getSize().y / 2.0f);
+
+	// Apply shadow effect
+	sf::Text shadowText(ui);
+	shadowText.setFillColor(sf::Color(0, 0, 0, 150)); 
+	shadowText.move(2, 2); 
+
 }
-void Maze::initui()
+void Maze::initui() // initialize the path not found text
 {
 	stringstream ss;
 	ss << "Path Not Found";
@@ -87,7 +247,7 @@ void Maze::initui()
 	ui.setOutlineColor(Color::Black);
 	ui.setOutlineThickness(5);
 }
-void Maze::bfs_shortestpath()
+void Maze::bfs_shortestpath() //algorithm to find the shortest path
 {
 	int numRows = adj_matrix.size();
 	int numCols = adj_matrix[0].size();
@@ -139,38 +299,59 @@ void Maze::bfs_shortestpath()
 		}
 	}
 }
-void Maze::movement()
-{
+void Maze::movement() {
 	sf::Clock clock;
 	sf::Time delay = sf::seconds(0.5f);
 
-	for (const auto& p : path) {
-		playeri = p.first;
-		playerj = p.second;
-		player->getplayer().setPosition(playerj * (window->getSize().x / 10 +3), playeri * (window->getSize().y / 10) );
-		clock.restart();
+	for (size_t i = 1; i < path.size(); ++i) { // Start from index 1 to skip the initial position
+		int dest_y = path[i].first * 70;
+		int dest_x = path[i].second * 70;
 
-		while (clock.getElapsedTime() < delay) {
-			sf::Event event;
+		sf::Vector2f playerPos = player->getplayer().getPosition();
+		float startX = playerPos.x;
+		float startY = playerPos.y;
+
+		// Determine the direction to move
+		int directionX = (dest_x > startX) ? 1 : ((dest_x < startX) ? -1 : 0);
+		int directionY = (dest_y > startY) ? 1 : ((dest_y < startY) ? -1 : 0);
+
+		while (startX != dest_x || startY != dest_y) {
+			float deltaTime = clock.restart().asSeconds();
+			float moveStep = 200.0f * deltaTime; // Adjust the move speed as needed
+
+			// Move horizontally
+			if (startX != dest_x) {
+				float newX = startX + directionX * moveStep;
+				if ((directionX > 0 && newX > dest_x) || (directionX < 0 && newX < dest_x)) {
+					startX = dest_x;
+				}
+				else {
+					startX = newX;
+				}
+			}
+
+			// Move vertically
+			if (startY != dest_y) {
+				float newY = startY + directionY * moveStep;
+				if ((directionY > 0 && newY > dest_y) || (directionY < 0 && newY < dest_y)) {
+					startY = dest_y;
+				}
+				else {
+					startY = newY;
+				}
+			}
+
+			// Set the new position of the player
+			player->getplayer().setPosition(startX, startY);
+
+			// Redraw the window
 			window->clear();
 			this->render(window);
 			window->display();
-			Event ev;
-			 while (window->pollEvent(ev))
-    {
-        if (ev.key.code == Keyboard::Escape)
-        {
-            window->close();
-        }
-        if (ev.type == Event::Closed)
-        {
-            window->close();
-        }
-    }
 		}
 	}
 }
-void Maze::declarePath()
+void Maze::declarePath() // highlight the path
 {
 	for (const auto& p : path) {
 		
@@ -201,21 +382,20 @@ void Maze::render(RenderTarget* window)
 	{
 		window->draw(ui);
 	}
+		window->draw(textguide);
 }
-Maze::Maze(RenderWindow* win)
-{
+Maze::Maze(RenderWindow* win) {
 	window = win;
-	this->initvariables();
-	this->initTexture();
-	this->initMaze();
-	this->bfs_shortestpath();
-	this->declarePath();
-	this->initPlayer(win);
-	this->initfont();
-	this->initui();
-	this->movement();
-
+	initializeMaze();
 }
+void Maze::initializeMaze() {
+	this->initvariables();
+	this->guideText();
+	this->initfont();
+	this->initTexture();
+	this->initMaze(*window);
+}
+
 Maze::~Maze()
 {
 

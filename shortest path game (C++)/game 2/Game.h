@@ -23,17 +23,18 @@ private:
     Maze* maze;
 
 
+
 public:
     Game();
     virtual ~Game();
 
     void initializeWindow();
+    void startAgain();
     void initializeVariables();
 
     bool running();
-
+    void render();
     void PollEvents();
     void update();
-    void render();
 };
 

@@ -24,13 +24,14 @@ private:
 	int player_y;
 	int playerj;
 	int playeri;
+	int prev_player_x = 0;
+	int prev_player_y = 0;
+	int prev_end_x = -1;
+	int prev_end_y = -1;
 	bool check;
+	bool finished;
 	pair<int, int> start;
 	pair<int, int> target;
-	
-
-	ifstream sin;
-
 	vector<vector<char>> arr;
 	vector<vector<int>> adj_matrix;
 	vector<vector<Sprite>> mazes;
@@ -45,14 +46,15 @@ private:
 	Texture Path;
 	Font font;
 	Text ui;
+	Text textguide;
 	
 
 
 public:
 	RenderWindow* window;
 	Maze(RenderWindow* win);
+	void initializeMaze();
 	virtual~Maze();
-
 	void initvariables();
 	void initfont();
 	void initui();
@@ -62,6 +64,9 @@ public:
 	void movement();
 	void initPlayer(RenderWindow* window);
 	void render(RenderTarget* win);
-	void initMaze();
+	void initMaze(RenderWindow& window);
+	void guideText();
+	void resetMaze(RenderWindow& window);
+	bool isValidCell(int x, int y);
 };
 

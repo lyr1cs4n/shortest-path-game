@@ -10,7 +10,5 @@ int main()
     do{
         game.render();
         game.update();
-
-
     } while (game.running());
 }

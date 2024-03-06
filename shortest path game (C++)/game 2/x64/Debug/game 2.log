@@ -1,15 +1,2 @@
-﻿  game 2.cpp
-  Game.cpp
-H:\Coding\games projects\Final Project\game 2\game 2\game 2.cpp(1,10): error C1083: Cannot open include file: 'SFML/Graphics.hpp': No such file or directory
-H:\Coding\games projects\Final Project\game 2\game 2\Game.h(4,10): error C1083: Cannot open include file: 'sfml/Audio.hpp': No such file or directory
-  (compiling source file 'Game.cpp')
-  
-  Maze.cpp
-H:\Coding\games projects\Final Project\game 2\game 2\Maze.h(4,10): error C1083: Cannot open include file: 'sfml/Audio.hpp': No such file or directory
-  (compiling source file 'Maze.cpp')
-  
-  Player.cpp
-H:\Coding\games projects\Final Project\game 2\game 2\Player.h(3,10): error C1083: Cannot open include file: 'SFML/Graphics.hpp': No such file or directory
-  (compiling source file 'Player.cpp')
-  
-  Generating Code...
+﻿  Game.cpp
+  game 2.vcxproj -> H:\Coding\projects\github\shortest-path-game\shortest path game (C++)\x64\Debug\game 2.exe

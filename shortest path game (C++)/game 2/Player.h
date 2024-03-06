@@ -20,6 +20,7 @@ private:
 	Sprite player;
 	Texture texture;
 
+
 	void initplayer(float x, float y);
 	void initTexture();
 	
