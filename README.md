@@ -27,6 +27,14 @@ Maze Explorer is an immersive game developed in C++ using the SFML (Simple and F
 
 5. **Celebrate Victory:** Successfully navigate the maze to reach the end point, overcoming challenges and obstacles to emerge victorious.
 
+## Additional Controls:
+
+- **Left Click:** Place walls on the maze.
+- **S:** Set the position of the character (start point).
+- **E:** Place the gate (end point).
+- **R:** Reset the maze.
+- **P:** Start the game.
+
 ## Conclusion:
 
 Maze Explorer offers a captivating gaming experience, combining elements of exploration, strategy, and problem-solving. With its customizable maze layouts, intuitive controls, and implementation of the BFS algorithm, Maze Explorer promises hours of immersive gameplay and challenges players to unlock the secrets of each maze.
